@@ -1,15 +1,20 @@
 import streamlit as st
-from joblib import load
+import joblib
+#from joblib import load
 from transformers import BertTokenizer
 import pandas as pd
 import torch
+from huggingface_hub import hf_hub_download
 
 
-def load_model():
-    model = load('model.joblib')
+@st.cache_resource
+def load_model(repo_id, modelname):
+    model_path = hf_hub_download(repo_id=repo_id, filename=modelname)
+    model = joblib.load(model_path)
     model.eval()
 
     return model
+
 
 def prediction(data):
     data = data['TEXTVALUE']
@@ -32,6 +37,7 @@ def prediction(data):
 
     return predicted_classes
 
+
 def load_file():
     uploaded_file = st.file_uploader(label='Выберите csv файл', type='csv')
     if uploaded_file is not None:
@@ -41,7 +47,9 @@ def load_file():
         return None
 
 
-model = load_model()
+repo_id = "DaBul/Neo_NLP"
+modelname = "model.joblib"
+model = load_model(repo_id, modelname)
 
 st.title('Система предсказания удовлетворенности сотрудников')
 file = load_file()
